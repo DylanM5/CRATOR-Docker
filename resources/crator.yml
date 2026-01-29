@@ -1,8 +1,8 @@
-crawler.depth: 3
-crawler.max_links: 1000000
-crawler.max_time: 86400
+crawler.depth: 3 # The number of pages past the starting page to crawl. Set to -1 for unlimited depth
+crawler.max_links: 1000000 # The maximum number of links to crawl. Set to -1 for unlimited links
+crawler.max_time: 86400 # The maximum time to spend crawling in seconds.
 crawler.random_wait: true
-crawler.wait_request: 1500
-data_directory: /home/jadelab/git/Dark-Web-Crawler/data
-http_proxy: socks5h://localhost:9050
-project_name: cocorico-market
+crawler.wait_request: 1500 # The time to wait between requests in milliseconds
+data_directory: /data
+http_proxy: http://torproxy:8118
+project_name: dark_web_crawler

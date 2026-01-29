@@ -8,6 +8,8 @@ def get_seeds():
     seeds_path = os.path.join(resource_path, 'seeds.txt')
     with open(seeds_path, 'r') as file:
         seeds = file.readlines()
-        seeds = [seed.strip() for seed in seeds]
+        seeds = [seed.strip() for seed in seeds if seed.strip()]
+        # Only allow .onion URLs
+        seeds = [seed for seed in seeds if '.onion' in seed]
 
     return seeds

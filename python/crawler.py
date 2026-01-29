@@ -1,3 +1,19 @@
+"""
+CRATOR Crawler
+
+Implements the core crawling logic for CRATOR
+
+Architecture (Paper Section III-A):
+    The crawler receives seed URLs, validates link accessibility, handles authentication via cookie rotation,
+    and downloads internal links using a breadth-first strategy. For each link, the crawler extracts and saves
+    the webpage content locally and checks if there are other internal links to put in the download queue. The
+    connection module makes use of proxy settings to establish a connection with .onion links, cookies to bypass
+    security checks, and random user agent to avoid being identified as a bot. This process keeps running until
+    it reaches a certain exit condition, such as a preset crawling time or a maximum number of links crawled.
+
+Reference: https://arxiv.org/html/2405.06356v1
+"""
+
 import random
 import logging
 import sys
@@ -22,7 +38,7 @@ import utils.fileutils as file_utils
 from exceptions import InvalidURLException, HTTPStatusCodeError
 
 MAX_RETRIES = 3
-MAX_COOKING_WAITING_TIME = 36000     # 10 hours
+MAX_COOKING_WAITING_TIME = 30
 
 logger = logging.getLogger("CRATOR")
 
@@ -77,17 +93,21 @@ class Crawler:
             project_name = f"{self.config.project_name()}-{today_tms}"
             project_path = os.path.join(data_dir, project_name)
 
-        if os.path.exists(project_path):
-            error_msg = f"Error: The project folder '{project_path}' already exists."
-            raise FileExistsError(error_msg)
+        # Create a subfolder for each seed to prevent file conflicts
+        seed_domain = urlparse(self.seed).netloc
+        seed_hash = hashlib.md5(seed_domain.encode()).hexdigest()[:8]
+        seed_folder_name = f"{seed_domain.replace('.', '_')[:30]}_{seed_hash}"
+        seed_project_path = os.path.join(project_path, seed_folder_name)
 
-        os.makedirs(project_path, exist_ok=True)
+        # Create project directory
+        os.makedirs(seed_project_path, exist_ok=True)
+        logger.info(f"Using project folder: {seed_project_path}")
 
         # Pages folder
-        self.page_path = os.path.join(project_path, "pages")
-        os.makedirs(self.page_path)
+        self.page_path = os.path.join(seed_project_path, "pages")
+        os.makedirs(self.page_path, exist_ok=True)
 
-        self.monitor = CrawlerMonitor(project_path)
+        self.monitor = CrawlerMonitor(seed_project_path)
         self.monitor.start_scheduling()
 
         self.filesaver = FileSaver(self.page_path)
@@ -168,12 +188,12 @@ class Crawler:
         """
 
         if not self.config.has_cookies(self.seed):
-            return True
+            return False
 
         captcha = captcha_detector(web_page.url, web_page)
         login_redirect = True
         if self.login_page:
-            login_redirection(web_page, self.login_page)
+            login_redirect = login_redirection(web_page, self.login_page)
 
         if login_redirect or captcha:
             if captcha:
@@ -224,8 +244,10 @@ class Crawler:
             url_depth = {self.seed: 0}
             url_attempts = {}
 
-            while (not self.downloader.is_empty() and n_links_crawled < self.max_link and not cookie_timeout and
-                   time.time() - start_time < self.max_crawl_time):
+            while (not self.downloader.is_empty() and 
+                   (self.max_link < 0 or n_links_crawled < self.max_link) and 
+                   not cookie_timeout and
+                   (self.max_crawl_time < 0 or time.time() - start_time < self.max_crawl_time)):
 
                 try:
                     url_futures = self.downloader.get_results()

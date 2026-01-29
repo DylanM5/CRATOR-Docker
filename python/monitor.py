@@ -1,3 +1,14 @@
+"""
+CRATOR Monitor
+
+Tracks crawling metrics and graph structure.
+
+Metrics (Paper Section IV-B):
+    CrawlerMonitor records nodes (visited URLs), edges (link relationships), HTTP status codes, scheduled pages, 
+    and unvisited links. 
+
+Reference: https://arxiv.org/html/2405.06356v1
+"""
 import csv
 import os
 import logging

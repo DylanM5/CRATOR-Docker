@@ -1,3 +1,13 @@
+"""
+CRATOR Handler 
+
+Tor proxy, user-agent, and cookie management
+
+Paper sections III-D through III-F
+
+Reference: https://arxiv.org/html/2405.06356v1
+"""
+
 import time
 import requests
 import threading
@@ -28,7 +38,7 @@ class TorHandler:
         self.n_requests_sent = 0
 
     def get_random_useragent(self):
-        ua = UserAgent()
+        ua = UserAgent(browsers=['Firefox']) # only uses Firefox because that's what Tor uses
         return ua.random
 
     def send_request(self, url, cookie=None):
@@ -98,11 +108,14 @@ class TorHandler:
             header = {'User-Agent': self.get_random_useragent()}
             ip = requests.get('https://ident.me', proxies=self.proxy, headers=header).text
             logger.debug(f"TOR HANDLER - Actual IP: {ip}")
-            # print(f"TOR HANDLER - Actual IP: {ip}")
 
+            # Resolve torproxy hostname to IP (stem requires IP address, not hostname)
+            import socket
+            torproxy_ip = socket.gethostbyname('torproxy')
+            
             # Send a request to tor asking for a new ip
-            with Controller.from_port(port=9051) as controller:
-                controller.authenticate(password='N0nn0')
+            with Controller.from_port(address=torproxy_ip, port=9051) as controller:
+                controller.authenticate(password='torpassword')
                 controller.signal(Signal.NEWNYM)
 
             # Check if the ip has been changed
@@ -112,7 +125,6 @@ class TorHandler:
                 new_ip = self.get_ip()
 
             logger.debug(f"TOR HANDLER - New IP: {new_ip}")
-            # print(f"TOR HANDLER - New IP: {new_ip}")
 
     def get_ip(self):
         header = {'User-Agent': self.get_random_useragent()}

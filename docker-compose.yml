@@ -1,0 +1,27 @@
+services:
+  crator:
+    container_name: crator
+    build: .
+    volumes:
+      - ./data-crator:/data
+      - ./resources:/app/resources
+      - ./logs:/app/log
+    depends_on:
+      torproxy:
+        condition: service_healthy
+
+  torproxy:
+    container_name: torproxy
+    image: dperson/torproxy
+    ports:
+      - "8118:8118"
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -x socks5h://localhost:9050 -s https://check.torproject.org/api/ip | grep -q '\"IsTor\":true' || exit 1" ]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+      start_period: 30s
+    environment:
+      - TOR_MaxCircuitDirtiness=300 # new circuit created 5 mins after circuit is dirtied
+      - PASSWORD=torpassword
+    restart: unless-stopped

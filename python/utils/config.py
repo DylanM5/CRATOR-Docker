@@ -101,7 +101,7 @@ class Configuration:
 
     def cookies(self, seed):
         self.load_yaml()
-        if not seed or not self.has_cookies():
+        if not seed or not self.has_cookies(seed):
             return None
 
         for cookie_by_seed in self.config.get('crawler.cookies', []):

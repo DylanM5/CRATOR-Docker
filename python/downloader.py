@@ -1,3 +1,15 @@
+"""
+CRATOR Downloader
+
+URL downloading using a thread pool.
+
+Architecture (Paper Section III-A):
+    The downloader maintains a queue of URLs to fetch and processes them
+    concurrently using multiple worker threads. Results are collected as
+    futures and retrieved by the Crawler for link extraction and validation.
+
+Reference: https://arxiv.org/html/2405.06356v1
+"""
 import concurrent.futures
 import os
 import logging

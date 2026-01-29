@@ -1,3 +1,8 @@
+"""
+CRATOR Main
+
+Entry point of CRATOR crawling process.
+"""
 import logging
 from datetime import datetime
 import time
@@ -61,7 +66,9 @@ if __name__ == '__main__':
     seeds = get_seeds()
     logger.info(f"Urls to analyze: {', '.join(seeds)}")
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=len(seeds)) as executor:
+    # Limit concurrency to avoid overloading Tor proxy. Much slower but more reliable
+    max_concurrent_seeds = min(5, len(seeds))
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_concurrent_seeds) as executor:
         torhandler = TorHandler()
         crators = []
         futures = []

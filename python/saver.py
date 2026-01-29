@@ -1,3 +1,20 @@
+"""
+CRATOR FileSaver
+
+File saving for downloaded web pages.
+
+Architecture (Paper Section III-A):
+    After the verification of link and cookie validity, the crawling process starts by downloading the
+    first link along with all internal links, which are links sharing the same domain as the initial link,
+    such as https://en.wikipedia.org/wiki/IOT and https://en.wikipedia.org/wiki/Crawler, both having the
+    domain en.wikipedia.org. For each link, the crawler extracts and saves the webpage content locally and
+    checks if there are other internal links to put in the download queue. The connection module makes use
+    of proxy settings to establish a connection with onion links, cookies to bypass security checks, and
+    random user-agent to avoid being identified as a bot. This process keeps running until it reaches a
+    certain exit condition, such as a preset crawling time or a maximum number of links crawled.
+
+Reference: https://arxiv.org/html/2405.06356v1
+"""
 import threading
 import time
 import os
