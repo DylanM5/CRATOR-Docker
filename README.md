@@ -1,4 +1,4 @@
-# Crator
+# CRATOR
 
 [Read the paper here](https://arxiv.org/html/2405.06356v1#S3.F1). CRATOR is a dark web crawler. The original project has very little documentation besides the paper. In my opinion, it is worse than ACHE, but it has some viable use cases.
 
@@ -100,7 +100,6 @@ CRATOR includes IP rotation to avoid detection.
 
 - Connects to the Tor Control Port (9051) to request a new circuit (`NEWNYM` signal)
 - Automatically triggers when captchas or blocks are detected
-- Enabled by default in `docker-compose.yml` (`TOR_ControlPort=0.0.0.0:9051`)
 
 ## User Agent Rotation
 
